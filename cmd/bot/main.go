@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	token, ok := os.LookupEnv("BOT_TOKEN")
+	token, ok := os.LookupEnv("TOKEN")
 	if !ok {
 		log.Fatal("Telegram bot token not found.")
 		return
