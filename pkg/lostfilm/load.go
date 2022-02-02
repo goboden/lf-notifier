@@ -2,7 +2,6 @@ package lostfilm
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,10 +14,10 @@ type RSS struct {
 
 type Channel struct {
 	XMLName xml.Name `xml:"channel"`
-	Items   []Items  `xml:"item"`
+	Items   []Item   `xml:"item"`
 }
 
-type Items struct {
+type Item struct {
 	XMLName     xml.Name `xml:"item"`
 	Title       string   `xml:"title"`
 	Description string   `xml:"description"`
@@ -26,7 +25,7 @@ type Items struct {
 	Link        string   `xml:"link"`
 }
 
-func Load() string {
+func Load(ch chan string, quit chan bool) {
 	url := "https://www.lostfilm.tv/rss.xml"
 	resp, err := http.Get(url)
 	if err != nil {
@@ -43,8 +42,8 @@ func Load() string {
 
 	// fmt.Printf("%v", rss)
 	for _, item := range rss.Channel.Items {
-		fmt.Println(item.Title)
+		ch <- item.Title
 	}
 
-	return url
+	quit <- true
 }
