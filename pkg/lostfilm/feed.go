@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type RSS struct {
@@ -25,11 +26,10 @@ type Item struct {
 	Link        string   `xml:"link"`
 }
 
-func Load(ch chan string, quit chan bool) {
-	url := "https://www.lostfilm.tv/rss.xml"
+func fetchXML(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		return make([]byte, 0), err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -37,13 +37,38 @@ func Load(ch chan string, quit chan bool) {
 		log.Fatal(err)
 	}
 
+	return body, nil
+}
+
+func parseXML(body []byte) RSS {
 	var rss RSS
 	xml.Unmarshal(body, &rss)
 
-	// fmt.Printf("%v", rss)
-	for _, item := range rss.Channel.Items {
-		ch <- item.Title
-	}
+	return rss
+}
 
-	quit <- true
+func Subscribe(url string, interval uint32) chan Item {
+	channel := make(chan Item)
+
+	go func() {
+		for {
+			time.Sleep(time.Second * time.Duration(interval))
+
+			body, err := fetchXML(url)
+			if err != nil {
+				log.Printf("Fetch error: %s", err.Error())
+			}
+
+			rss := parseXML(body)
+			for _, item := range rss.Channel.Items {
+				channel <- item
+			}
+		}
+	}()
+
+	return channel
+}
+
+func read(url string, interval uint32, data chan Item) {
+
 }
