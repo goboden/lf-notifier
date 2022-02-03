@@ -12,6 +12,6 @@ WORKDIR /root/
 
 COPY --from=0 /github.com/goboden/lf-notifier/.bin/bot .
 
-EXPOSE 80
+# EXPOSE 80
 
 CMD ["./bot"]
